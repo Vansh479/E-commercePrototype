@@ -79,9 +79,12 @@ class StaticProductController extends Controller
     public function index(Request $request)
     {
         $productsToDisplay = new Collection($this->products);
-        $selectedCategories = $request->input('categories', []);
         $sort = $request->input('sort');
         $search = $request->input('search');
+        
+        $selectedCategories = array_filter($request->input('categories', []));
+
+        $allCategories = array_unique(Arr::pluck($this->products, 'category'));
 
         if ($search) {
             $productsToDisplay = $productsToDisplay->filter(function ($product) use ($search) {
@@ -89,6 +92,7 @@ class StaticProductController extends Controller
             });
         }
 
+        
         if (!empty($selectedCategories)) {
             $productsToDisplay = $productsToDisplay->whereIn('category', $selectedCategories);
         }
@@ -98,8 +102,6 @@ class StaticProductController extends Controller
         } elseif ($sort === 'price_desc') {
             $productsToDisplay = $productsToDisplay->sortByDesc('price');
         }
-
-        $allCategories = array_unique(Arr::pluck($this->products, 'category'));
 
         return view('welcome', [
             'products' => $productsToDisplay,
